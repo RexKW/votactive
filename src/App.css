@@ -1,42 +1,685 @@
-#root {
-  max-width: 1280px;
+/* Color Variables */
+:root {
+  --primary-blue: #0088CC;    
+  --primary-yellow: #FFCE00;  
+  --accent-orange: #FF6600;   
+  --dark-navy: #050A18;       
+  --cream-bg: #FFFEF5;        
+  --text-dark: #1F2937;
+}
+
+/* Reset & Container */
+.votactive-container {
+  min-height: 100vh;
+  background-color: var(--cream-bg);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- HEADER --- */
+.votactive-header {
+  background-color: #004488; 
+  padding: 12px 0;
+  color: white;
+}
+
+.votactive-header-content {
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  padding: 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.votactive-logo {
+  display: flex;
+  align-items: center;
+  font-weight: 800;
+  font-size: 24px;
+  letter-spacing: -0.5px;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.logo-box {
+  background-color: var(--accent-orange);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-right: 4px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.logo-text {
+  color: white;
 }
 
-.card {
-  padding: 2em;
+.votactive-nav {
+  display: flex;
+  gap: 24px;
 }
 
-.read-the-docs {
+.votactive-nav a {
+  color: rgba(255,255,255,0.8);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.votactive-nav a:hover, .votactive-nav a.active {
+  color: white;
+}
+
+/* --- HERO SECTION --- */
+.votactive-hero {
+  background-color: var(--primary-yellow);
+  background-image: repeating-conic-gradient(
+    from 0deg,
+    #FFCE00 0deg 10deg,
+    #FFD633 10deg 20deg
+  );
+  padding: 60px 24px 80px; 
+  position: relative;
+}
+
+.votactive-hero-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+
+.hero-left {
+  max-width: 500px;
+  z-index: 10;
+}
+
+.hero-title {
+  font-size: 3.5rem;
+  margin: 0 0 10px 0;
+  font-weight: 800;
+}
+.hero-title .orange { color: #E85D04; }
+.hero-title .white { color: white; }
+
+.hero-slogan {
+  color: white;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 24px;
+}
+
+.hero-search {
+  background: white;
+  border-radius: 50px;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  max-width: 400px;
+}
+
+.hero-search input {
+  border: none;
+  outline: none;
+  width: 100%;
+  padding: 8px;
+  font-size: 14px;
+  color: #666;
+}
+
+.search-icon {
+  color: #ccc;
+}
+
+/* --- HERO ILLUSTRATION --- */
+.illustration-placeholder {
+  position: relative;
+  width: 300px;
+  height: 200px;
+}
+
+.ballot-box {
+  width: 220px;
+  height: 80px;
+  background-color: #003366; 
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  border-top: 20px solid #CC6600; 
+}
+
+.ballot-box .slot {
+  width: 100px;
+  height: 8px;
+  background-color: #002244;
+  margin: -14px auto 0;
+}
+
+.hand-holding-card {
+  position: absolute;
+  top: 0;
+  right: 20px;
+  transform: rotate(-15deg);
+  animation: voteDrop 3s infinite ease-in-out;
+}
+
+.card-vote {
+  width: 140px;
+  height: 90px;
+  background-color: #FF9966;
+  border: 2px solid white;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: white;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+@keyframes voteDrop {
+  0%, 100% { transform: translateY(0) rotate(-15deg); }
+  50% { transform: translateY(10px) rotate(-15deg); }
+}
+
+/* --- MAIN CONTENT --- */
+.main-content {
+  width: 100%; /* Force full width */
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px 60px;
+  flex: 1;
+  box-sizing: border-box;
+}
+
+.section-title {
+  color: var(--primary-blue);
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  font-weight: 700;
+  text-align: left;
+}
+
+/* Grid Layout Fix */
+.event-grid {
+  display: grid;
+  /* Explicitly set 3 columns to ensure side-by-side layout */
+  grid-template-columns: repeat(3, 1fr); 
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.event-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  border: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-image {
+  height: 160px;
+  background-color: #FFD633; 
+  position: relative;
+}
+
+.badge-icon {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255,255,255,0.8);
+  padding: 4px;
+  border-radius: 50%;
+}
+
+.card-details {
+  padding: 16px;
+  text-align: left;
+}
+
+.card-title {
+  margin: 0 0 8px 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.card-info-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   color: #888;
+  font-size: 0.8rem;
+  margin-bottom: 12px;
+}
+
+.card-footer {
+  border-top: 1px solid #eee;
+  padding-top: 12px;
+}
+
+.price-label {
+  display: block;
+  font-size: 0.7rem;
+  color: #aaa;
+}
+
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  color: var(--primary-blue);
+}
+
+.location-icon {
+  color: var(--primary-blue);
+}
+
+/* --- FOOTER --- */
+.votactive-footer {
+  background-color: var(--dark-navy);
+  padding: 40px 24px;
+  color: white;
+  margin-top: auto;
+}
+
+.footer-content {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer-bar {
+  width: 150px;
+  height: 12px;
+  background-color: #ccc;
+  border-radius: 6px;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 900px) {
+  .event-grid {
+    /* On medium screens, show 2 columns */
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .votactive-hero-content {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .hero-search {
+    margin: 0 auto;
+  }
+  
+  .illustration-placeholder {
+    margin: 40px auto 0;
+  }
+
+  .event-grid {
+    /* On mobile screens, show 1 column */
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --- KOMPETISI PAGE STYLES --- */
+
+/* Page Wrapper */
+.kompetisi-page {
+  position: relative;
+  background-color: var(--cream-bg);
+}
+
+/* Main Container for Kompetisi */
+.kompetisi-main {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  overflow: hidden; /* Ensures the diagonal bg doesn't spill over */
+}
+
+/* The Blue Diagonal Background */
+.kompetisi-bg-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--primary-blue);
+  /* This creates the diagonal cut from top-right to middle-left */
+  clip-path: polygon(0 65%, 100% 0, 100% 100%, 0% 100%);
+  z-index: 0;
+}
+
+/* Content Wrapper to sit above the background */
+.kompetisi-content-wrapper {
+  position: relative;
+  z-index: 10;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+/* Explore Section */
+.explore-header {
+  margin-bottom: 40px;
+}
+
+.explore-title {
+  color: var(--primary-blue);
+  font-size: 3rem;
+  font-weight: 800;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.explore-search {
+  background: #FFFEF5; /* Matches cream bg */
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  max-width: 600px;
+  margin-bottom: 20px;
+}
+
+.explore-search input {
+  background: transparent;
+  border: none;
+  outline: none;
+  width: 100%;
+  padding-left: 10px;
+  font-size: 16px;
+  color: #666;
+}
+
+/* Filter Chips */
+.filter-chips {
+  display: flex;
+  gap: 16px;
+}
+
+.chip {
+  width: 120px;
+  height: 32px;
+  background-color: #D9D9D9; /* Gray placeholder color */
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* Footer Specifics for Kompetisi Page */
+.footer-boxes-vertical {
+  display: flex;
+  justify-content: flex-end;
+  gap: 24px;
+  margin-bottom: 60px;
+}
+
+.footer-placeholder-vertical {
+  width: 100px;
+  height: 180px;
+  background-color: #D9D9D9;
+  border-radius: 4px;
+}
+
+/* Ensure the grid sits nicely */
+.kompetisi-grid-section .event-grid {
+  margin-top: 40px;
+}
+
+/* Responsive adjustments for the diagonal background */
+@media (max-width: 768px) {
+  .kompetisi-bg-layer {
+    clip-path: polygon(0 80%, 100% 20%, 100% 100%, 0% 100%);
+  }
+  
+  .explore-title {
+    font-size: 2.5rem;
+  }
+  
+  .filter-chips {
+    flex-wrap: wrap;
+  }
+  
+  .footer-boxes-vertical {
+    justify-content: center;
+  }
+}
+
+/* --- DETAIL KOMPETISI PAGE STYLES --- */
+
+.detail-page {
+  background-color: var(--cream-bg);
+}
+
+.detail-main {
+  max-width: 100%;
+}
+
+/* 1. Event Info Section */
+.event-info-section {
+  max-width: 1000px;
+  margin: 40px auto;
+  padding: 0 24px;
+}
+
+.event-info-wrapper {
+  display: flex;
+  gap: 40px;
+  margin-bottom: 40px;
+}
+
+.event-banner-placeholder {
+  width: 350px;
+  height: 450px;
+  background-color: #FCD34D; /* Yellow */
+  flex-shrink: 0;
+  border-radius: 4px;
+}
+
+.event-text-content {
+  flex: 1;
+  position: relative;
+  text-align: left;
+}
+
+.event-detail-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #111;
+  margin-bottom: 8px;
+}
+
+.event-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #666;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+}
+
+.event-tags {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.tag-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.orange-text {
+  color: #E85D04;
+}
+
+.tag-placeholder {
+  width: 32px;
+  height: 32px;
+  background-color: #ddd;
+  border-radius: 4px;
+}
+
+.event-description {
+  color: #333;
+  line-height: 1.6;
+  font-size: 0.95rem;
+  text-align: justify;
+}
+
+.fab-button {
+  position: absolute;
+  bottom: -30px;
+  right: -20px;
+  width: 80px;
+  height: 80px;
+  background-color: #FCD34D;
+  border-radius: 50%;
+  border: none;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  cursor: pointer;
+}
+
+.wide-grey-bar {
+  width: 100%;
+  height: 120px;
+  background-color: #D9D9D9;
+  border-radius: 4px;
+}
+
+/* 2. Leaderboard Section */
+.leaderboard-section {
+  background-color: #051A44; /* Dark Blue */
+  padding: 40px 0 80px;
+  position: relative;
+  /* Simple dot pattern */
+  background-image: radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.leaderboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 800px;
+  margin: 0 auto 60px;
+  padding: 0 24px;
+}
+
+.leaderboard-title {
+  color: #FCD34D;
+  font-size: 2.5rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.header-box-placeholder {
+  width: 80px;
+  height: 100px;
+  background-color: #D9D9D9;
+}
+
+/* Podium Layout */
+.podium-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.podium-spot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.avatar-circle {
+  border-radius: 50%;
+  margin-bottom: -10px; /* Overlap slightly with base */
+  z-index: 2;
+}
+
+.yellow-circle { width: 180px; height: 180px; background-color: #FCD34D; }
+.white-circle { width: 140px; height: 140px; background-color: #FFF8E1; }
+.orange-circle { width: 140px; height: 140px; background-color: #E85D04; }
+
+.podium-base {
+  width: 80px;
+  height: 80px;
+  background-color: #D9D9D9;
+  z-index: 1;
+}
+
+/* 3. Peserta Section */
+.peserta-section {
+  max-width: 1000px;
+  margin: 60px auto;
+  padding: 0 24px;
+}
+
+.peserta-search-bar {
+  width: 300px;
+  background-color: #FFF;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.peserta-search-bar input {
+  border: none;
+  outline: none;
+  font-size: 14px;
+  width: 100%;
+  margin-left: 8px;
+}
+
+.pagination-bar-right {
+  width: 200px;
+  height: 30px;
+  background-color: #D9D9D9;
+  margin-left: auto;
+  margin-top: 20px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .event-info-wrapper {
+    flex-direction: column;
+  }
+  .event-banner-placeholder {
+    width: 100%;
+    height: 250px;
+  }
+  .leaderboard-title {
+    font-size: 1.5rem;
+  }
+  .yellow-circle { width: 120px; height: 120px; }
+  .white-circle, .orange-circle { width: 90px; height: 90px; }
+  .podium-base { width: 50px; height: 50px; }
 }
