@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getEventById, saveEvent, type VotingEvent, type Candidate } from '../data/store';
-import type { VotingEvent as VotingEventType } from '../data/store';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { Trash, Plus, Upload, X } from 'lucide-react';
@@ -11,13 +10,14 @@ export default function AdminEventForm() {
   const { id } = useParams();
   const navigate = useNavigate();
   
-  const [formData, setFormData] = useState<Partial<VotingEventType>>({
+  const [formData, setFormData] = useState<Partial<VotingEvent>>({
     title: '',
     date: '',
     price: '',
     location: '',
     description: '',
     image: '',
+    votes: 0,
     candidates: []
   });
 
@@ -28,22 +28,62 @@ export default function AdminEventForm() {
     }
   }, [id]);
 
-  // Helper to convert file to Base64
+  // --- NEW: Image Compression Helper ---
+  // Resizes images to max 500px and compresses quality to 70%
+  // This prevents the "QuotaExceededError" in LocalStorage
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, callback: (base64: string) => void) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        callback(reader.result as string);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        
+        img.onload = () => {
+          // Create a canvas to resize the image
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          
+          // Set maximum dimensions (e.g., 500px width/height)
+          const MAX_WIDTH = 500;
+          const MAX_HEIGHT = 500;
+          let width = img.width;
+          let height = img.height;
+
+          // Calculate new dimensions maintaining aspect ratio
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          // Draw the resized image onto the canvas
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          // Convert to Base64 with compression (JPEG at 70% quality)
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+          
+          callback(compressedBase64);
+        };
       };
       reader.readAsDataURL(file);
     }
   };
 
-  // Candidate Management
+  // --- Candidate Management ---
   const addCandidate = () => {
     const newCandidate: Candidate = {
-      id: crypto.randomUUID(),
+      // Safe ID generation
+      id: 'cand_' + Date.now() + '_' + Math.floor(Math.random() * 1000), 
       name: '',
       image: '',
       votes: 0,
@@ -69,6 +109,7 @@ export default function AdminEventForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
     const newId = id ? Number(id) : Date.now();
     
     // Validation: Ensure candidates array exists and has at least 2 items
@@ -77,21 +118,27 @@ export default function AdminEventForm() {
       return;
     }
 
-    // Ensure all required fields are present before saving
+    // Prepare object for saving
     const eventToSave: VotingEvent = {
         id: newId,
         title: formData.title || '',
         date: formData.date || '',
         price: formData.price || '',
-        priceValue: formData.priceValue || 0, // Ensure priceValue is handled if needed, or default to 0
+        priceValue: formData.priceValue || 0,
         location: formData.location || '',
         description: formData.description || '',
         image: formData.image || '',
+        votes: formData.votes || 0,
         candidates: formData.candidates
     };
 
-    saveEvent(eventToSave);
-    navigate('/admin');
+    try {
+      saveEvent(eventToSave);
+      navigate('/admin');
+    } catch (error) {
+      console.error("Failed to save event:", error);
+      alert("Failed to save event. Your image might still be too large, or LocalStorage is full.");
+    }
   };
 
   return (

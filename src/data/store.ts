@@ -1,10 +1,12 @@
+// src/data/store.ts
+
 // Types
 export interface Candidate {
-  id: string; // UUID for easier management
+  id: string;
   name: string;
-  image: string; // Base64 string
+  image: string;
   votes: number;
-  voters: string[]; // Array of usernames who voted for this candidate
+  voters: string[];
 }
 
 export interface VotingEvent {
@@ -15,7 +17,8 @@ export interface VotingEvent {
   priceValue: number;
   location: string;
   description: string;
-  image: string; // Event Banner (Base64)
+  image: string;
+  votes: number; // <--- This was missing!
   candidates: Candidate[];
 }
 
@@ -33,11 +36,12 @@ const initialEvents: VotingEvent[] = [
     price: 'Rp 20.000,00',
     priceValue: 20000,
     location: 'Gedung Serbaguna',
-    description: 'Annual university anniversary celebration featuring guest stars and student performances.',
-    image: '', // Empty string means use default placeholder
+    description: 'Annual university anniversary celebration.',
+    image: '',
+    votes: 150, // <--- Added this
     candidates: [
-      { id: 'c1', name: 'Candidate A', image: '', votes: 50, voters: ['user1', 'user2'] },
-      { id: 'c2', name: 'Candidate B', image: '', votes: 100, voters: ['user3', 'admin'] },
+      { id: 'c1', name: 'Candidate A', image: '', votes: 50, voters: [] },
+      { id: 'c2', name: 'Candidate B', image: '', votes: 100, voters: [] },
     ]
   },
   {
@@ -49,6 +53,7 @@ const initialEvents: VotingEvent[] = [
     location: 'Lapangan Utama',
     description: 'The biggest music festival in town.',
     image: '',
+    votes: 0, // <--- Added this
     candidates: []
   },
 ];
@@ -99,17 +104,19 @@ export const voteForCandidate = (eventId: number, candidateId: string, username:
   
   if (candidateIndex === -1) return false;
 
-  // Check if user already voted in this event (optional rule, good for voting apps)
   const hasVoted = events[eventIndex].candidates.some(c => c.voters.includes(username));
   if (hasVoted) {
     alert("You have already voted in this event!");
     return false;
   }
 
-  // Add vote
+  // Update candidate votes
   events[eventIndex].candidates[candidateIndex].votes += 1;
   events[eventIndex].candidates[candidateIndex].voters.push(username);
   
+  // Update total event votes
+  events[eventIndex].votes = (events[eventIndex].votes || 0) + 1;
+
   localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
   return true;
 };
