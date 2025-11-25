@@ -51,7 +51,17 @@ export default function Kompetisi() {
                   }}
                 >
                   <div className="event-card">
-                    <div className="card-image"></div>
+                    <div 
+                      className="card-image"
+                      style={{
+                        backgroundImage: event.image ? `url(${event.image})` : 'none',
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        backgroundColor: event.image ? 'transparent' : '#FFD633'
+                      }}
+                    >
+                      {/* Placeholder or badge if needed */}
+                    </div>
                     <div className="card-details">
                       <h3 className="card-title">{event.title}</h3>
                       <div className="card-info-row">

@@ -1,21 +1,30 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Copy } from 'lucide-react';
+import { voteForCandidate, getCurrentUser } from '../data/store';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import '../App.css';
 
 export default function Payment() {
   const navigate = useNavigate();
-  const [timeLeft, setTimeLeft] = useState(3600); // 1 hour in seconds
+  const location = useLocation();
+  const [timeLeft, setTimeLeft] = useState(3600);
   const vaNumber = "8077123456789012";
 
+  const { eventId, candidateId } = location.state || {};
+
   useEffect(() => {
+    if (!eventId || !candidateId) {
+      alert("Invalid transaction details");
+      navigate('/');
+    }
+
     const timer = setInterval(() => {
       setTimeLeft(prev => (prev > 0 ? prev - 1 : 0));
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [eventId, candidateId, navigate]);
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
@@ -29,10 +38,18 @@ export default function Payment() {
   };
 
   const handleCheckPayment = () => {
-    // Simulate processing
+    // Simulate Payment Success
     setTimeout(() => {
-      alert("Payment Successful! Thank you for voting.");
-      navigate('/');
+      const user = getCurrentUser();
+      if (user && eventId && candidateId) {
+        const success = voteForCandidate(eventId, candidateId, user.username);
+        if (success) {
+          alert("Payment Successful! Your vote has been recorded.");
+          navigate(`/detail-kompetisi/${eventId}`);
+        } else {
+          navigate('/');
+        }
+      }
     }, 1000);
   };
 
@@ -50,7 +67,6 @@ export default function Payment() {
 
           <div className="payment-body">
             <div className="bca-logo">
-              {/* Simple CSS Logo Simulation */}
               <div className="bank-logo">BCA</div>
               <span>Virtual Account</span>
             </div>

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Search, MapPin, Calendar, Ticket } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getEvents } from '../data/store';
-import type { VotingEvent } from '../data/store'; // Fix: use type-only import
+import type { VotingEvent } from '../data/store';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import '../App.css';
@@ -52,9 +52,27 @@ export default function Home() {
           <h2 className="section-title">Event Populer</h2>
           <div className="event-grid">
             {events.map((event) => (
-              <Link to={`/detail-kompetisi/${event.id}`} key={event.id} style={{ textDecoration: 'none', color: 'inherit' }}>
+              <Link 
+                to={`/detail-kompetisi/${event.id}`} 
+                key={event.id} 
+                style={{ 
+                  textDecoration: 'none', 
+                  color: 'inherit',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: '100%' 
+                }}
+              >
                 <div className="event-card">
-                  <div className="card-image">
+                  <div 
+                    className="card-image"
+                    style={{
+                      backgroundImage: event.image ? `url(${event.image})` : 'none',
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      backgroundColor: event.image ? 'transparent' : '#FFD633'
+                    }}
+                  >
                     <span className="badge-icon">🔥</span>
                   </div>
                   <div className="card-details">

@@ -1,14 +1,22 @@
 // Types
+export interface Candidate {
+  id: string; // UUID for easier management
+  name: string;
+  image: string; // Base64 string
+  votes: number;
+  voters: string[]; // Array of usernames who voted for this candidate
+}
+
 export interface VotingEvent {
   id: number;
   title: string;
   date: string;
   price: string;
-  priceValue: number; // Numeric value for logic
+  priceValue: number;
   location: string;
   description: string;
-  votes: number; // For admin stats
-  candidates: { name: string; votes: number; color: string }[];
+  image: string; // Event Banner (Base64)
+  candidates: Candidate[];
 }
 
 export interface User {
@@ -26,10 +34,10 @@ const initialEvents: VotingEvent[] = [
     priceValue: 20000,
     location: 'Gedung Serbaguna',
     description: 'Annual university anniversary celebration featuring guest stars and student performances.',
-    votes: 150,
+    image: '', // Empty string means use default placeholder
     candidates: [
-      { name: 'Candidate A', votes: 50, color: '#FCD34D' },
-      { name: 'Candidate B', votes: 100, color: '#E85D04' },
+      { id: 'c1', name: 'Candidate A', image: '', votes: 50, voters: ['user1', 'user2'] },
+      { id: 'c2', name: 'Candidate B', image: '', votes: 100, voters: ['user3', 'admin'] },
     ]
   },
   {
@@ -40,26 +48,16 @@ const initialEvents: VotingEvent[] = [
     priceValue: 50000,
     location: 'Lapangan Utama',
     description: 'The biggest music festival in town.',
-    votes: 320,
-    candidates: []
-  },
-  {
-    id: 3,
-    title: 'Art Gallery',
-    date: '01 Desember 2023',
-    price: 'Free',
-    priceValue: 0,
-    location: 'Aula Kampus',
-    description: 'Exhibition of student art projects.',
-    votes: 45,
+    image: '',
     candidates: []
   },
 ];
 
-// Helper to simulate database
+// Storage Keys
 const STORAGE_KEY = 'votactive_events';
 const USER_KEY = 'votactive_user';
 
+// Helpers
 export const getEvents = (): VotingEvent[] => {
   const stored = localStorage.getItem(STORAGE_KEY);
   if (!stored) {
@@ -88,6 +86,32 @@ export const saveEvent = (event: VotingEvent) => {
 export const deleteEvent = (id: number) => {
   const events = getEvents().filter(e => e.id !== id);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+};
+
+// Voting Logic
+export const voteForCandidate = (eventId: number, candidateId: string, username: string) => {
+  const events = getEvents();
+  const eventIndex = events.findIndex(e => e.id === eventId);
+  
+  if (eventIndex === -1) return false;
+
+  const candidateIndex = events[eventIndex].candidates.findIndex(c => c.id === candidateId);
+  
+  if (candidateIndex === -1) return false;
+
+  // Check if user already voted in this event (optional rule, good for voting apps)
+  const hasVoted = events[eventIndex].candidates.some(c => c.voters.includes(username));
+  if (hasVoted) {
+    alert("You have already voted in this event!");
+    return false;
+  }
+
+  // Add vote
+  events[eventIndex].candidates[candidateIndex].votes += 1;
+  events[eventIndex].candidates[candidateIndex].voters.push(username);
+  
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+  return true;
 };
 
 // Auth Simulation
