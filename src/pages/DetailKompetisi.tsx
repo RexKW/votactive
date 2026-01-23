@@ -1,24 +1,67 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Search, Calendar, WifiOff, CheckCircle } from 'lucide-react';
-import { getEventById, getCurrentUser } from '../data/store';
+import { Search, Calendar, WifiOff, CheckCircle, DivideSquare } from 'lucide-react';
+import { getCurrentUser } from '../data/store';
+import { getEventById } from '../apis/EventCRUD';
 import type { VotingEvent } from '../data/store';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import '../App.css';
+import type { EventResponse } from '../models/event-model';
+import { getCandidates } from '../apis/CandidateCRUD';
+import type { CandidateResponse } from '../models/candidate-model';
 
 export default function DetailKompetisi() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [event, setEvent] = useState<VotingEvent | undefined>(undefined);
+  // const [event, setEvent] = useState<VotingEvent | undefined>(undefined);
+  const [event, setEvent] = useState<EventResponse>()
+  const [candidates, setCandidates] = useState<CandidateResponse[]>([])
+  const [popUpState, setPopUpState] = useState<boolean>(false)
+  const [candidateName, setCandidateName] = useState<string>()
+  const [voteAmount, setVoteAmount] = useState<number>(0)
+    const [candidateImage, setCandidateImage] = useState<string>()
+
   const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
-      const found = getEventById(Number(id));
-      setEvent(found);
+      // const found = getEventById(Number(id));
+      // setEvent(found);
+      getEvent(id)
+      fetchedCandidates(id)
     }
   }, [id]);
+
+  const handleSelect = (name: string, id: string) =>{
+    setCandidateName(name)
+    setSelectedCandidateId(id)
+
+    setPopUpState(true)
+  }
+
+  const handleAcceptVote = () =>{
+    //payment gateway goes in here aswell
+    
+  }
+
+  const handleClose =() =>{
+    setCandidateName("")
+    setPopUpState(false)
+  }
+
+  const getEvent = async(id: string) => {
+    const fetchedEvent = await getEventById(id)
+    console.log("Raw fetched data:", fetchedEvent);
+    setEvent(fetchedEvent.data)
+  }
+
+
+  const fetchedCandidates = async(id:string) =>{
+    const fetchedCandidates = await getCandidates(id)
+    console.log("Raw fetched candidates data:", fetchedCandidates);
+    setCandidates(fetchedCandidates.data)
+  }
 
   const handleVote = () => {
     const user = getCurrentUser();
@@ -50,7 +93,7 @@ export default function DetailKompetisi() {
   );
 
   // Sort candidates by votes descending (Highest first)
-  const sortedCandidates = [...event.candidates].sort((a, b) => b.votes - a.votes);
+  const sortedCandidates = [...candidates].sort((a, b) => (b.totalVotes ?? 0) - (a.totalVotes ?? 0));
 
   // We need at least 1 candidate to show a podium.
   // The layout is tricky: Center is 1st (index 0), Left is 2nd (index 1), Right is 3rd (index 2)
@@ -58,23 +101,42 @@ export default function DetailKompetisi() {
   return (
     <div className="votactive-container detail-page">
       <Header />
+      { popUpState &&
+        <div className='w-screen h-screen fixed flex justify-center items-center bg-black/25 z-100'>
+          <div className='bg-white rounded-xl pb-5 pt-10 w-128 px-5 flex flex-col justify-center items-center relative'>
+              <button onClick={handleClose} className='absolute top-2 left-2'>x</button>
+              <div className="card-image w-full h-full rounded-xl" style={{
+                  backgroundImage: candidateImage ? `url(${candidateImage})` : 'none',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center'
+                }}>
+
+                </div>
+              <p className='mt-5 text-3xl font-bold'>{candidateName}</p>
+              <div className='border-[#eee] border-1 w-full mt-5 flex flex-col'>
+                <input type="number" value={voteAmount} onChange={(e) => setVoteAmount(e.target.valueAsNumber)} />
+              </div>
+
+          </div>
+        </div>
+      }
 
       <main className="detail-main">
         {/* Event Info */}
         <section className="event-info-section">
           <div className="event-info-wrapper">
             <div className="event-banner-placeholder" style={{
-              backgroundImage: event.image ? `url(${event.image})` : 'none',
+              backgroundImage: event.coverImage ? `url(${event.coverImage})` : 'none',
               backgroundSize: 'cover',
               backgroundPosition: 'center',
-              backgroundColor: event.image ? 'transparent' : '#FCD34D'
+              backgroundColor: event.coverImage ? 'transparent' : '#FCD34D'
             }}></div>
             
             <div className="event-text-content">
-              <h1 className="event-detail-title">{event.title}</h1>
+              <h1 className="event-detail-title">{event.name}</h1>
               <div className="event-meta">
                 <Calendar size={16} />
-                <span>{event.date}</span>
+                <span>{new Date(event.startDate).toLocaleDateString()}</span>
               </div>
               
               <div className="event-tags">
@@ -84,14 +146,18 @@ export default function DetailKompetisi() {
                 </div>
               </div>
 
-              <p className="event-description">{event.description}</p>
+              <p className="event-description">{event.details}</p>
               
-              <button onClick={handleVote} className="primary-btn" style={{marginTop: '20px', borderRadius: '50px', padding: '12px 32px'}}>
+              <button onClick={handleVote} className="primary-btn px5 py-2">
                 VOTE NOW
               </button>
+              <div className='mt-5'>
+                {event.description}
+              </div>
             </div>
+            
           </div>
-          <div className="wide-grey-bar"></div>
+          
         </section>
 
         {/* Leaderboard Section */}
@@ -108,11 +174,11 @@ export default function DetailKompetisi() {
               {sortedCandidates.length > 1 ? (
                 <>
                   <div className="avatar-circle white-circle" style={{ backgroundImage: `url(${sortedCandidates[1].image})`, backgroundSize: 'cover' }}>
-                    {!sortedCandidates[1].image && sortedCandidates[1].name[0]}
+                    {!sortedCandidates[1].image}
                   </div>
                   <div className="podium-base">
                     <span className="rank-num">2</span>
-                    <div className="vote-badge-small">{sortedCandidates[1].votes} Votes</div>
+                    <div className="vote-badge-small">{sortedCandidates[1].totalVotes} Votes</div>
                   </div>
                   <span className="podium-name">{sortedCandidates[1].name}</span>
                 </>
@@ -125,11 +191,11 @@ export default function DetailKompetisi() {
                 <>
                   <div className="icon-crown">👑</div>
                   <div className="avatar-circle yellow-circle" style={{ backgroundImage: `url(${sortedCandidates[0].image})`, backgroundSize: 'cover' }}>
-                    {!sortedCandidates[0].image && sortedCandidates[0].name[0]}
+                    {!sortedCandidates[0].image}
                   </div>
                   <div className="podium-base">
                     <span className="rank-num">1</span>
-                    <div className="vote-badge-small">{sortedCandidates[0].votes} Votes</div>
+                    <div className="vote-badge-small">{sortedCandidates[0].totalVotes} Votes</div>
                   </div>
                   <span className="podium-name big">{sortedCandidates[0].name}</span>
                 </>
@@ -141,11 +207,11 @@ export default function DetailKompetisi() {
               {sortedCandidates.length > 2 ? (
                 <>
                   <div className="avatar-circle orange-circle" style={{ backgroundImage: `url(${sortedCandidates[2].image})`, backgroundSize: 'cover' }}>
-                    {!sortedCandidates[2].image && sortedCandidates[2].name[0]}
+                    {!sortedCandidates[2].image}
                   </div>
                   <div className="podium-base">
                     <span className="rank-num">3</span>
-                    <div className="vote-badge-small">{sortedCandidates[2].votes} Votes</div>
+                    <div className="vote-badge-small">{sortedCandidates[2].totalVotes} Votes</div>
                   </div>
                   <span className="podium-name">{sortedCandidates[2].name}</span>
                 </>
@@ -159,11 +225,11 @@ export default function DetailKompetisi() {
           <h2 className="section-title">Select Candidate to Vote</h2>
           
           <div className="event-grid">
-            {event.candidates.map((candidate) => (
+            {candidates.map((candidate) => (
               <div 
                 key={candidate.id} 
                 className={`event-card ${selectedCandidateId === candidate.id ? 'selected-card' : ''}`}
-                onClick={() => setSelectedCandidateId(candidate.id)}
+                onClick={() => handleSelect(candidate.name, candidate.id)}
                 style={{ cursor: 'pointer', border: selectedCandidateId === candidate.id ? '3px solid #E85D04' : '1px solid #eee' }}
               >
                 <div className="card-image" style={{

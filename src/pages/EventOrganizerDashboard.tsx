@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 // import { getEvents, deleteEvent } from '../data/store';
@@ -9,39 +10,39 @@ import Footer from '../components/Footer';
 import '../App.css';
 import type { EventResponse, EventWithCandidatesResponse } from '../models/event-model';
 import { getCandidates } from '../apis/CandidateCRUD';
-import { getEvents } from '../apis/EventCRUD';
 
-export default function AdminDashboard() {
+export default function EventOrganizerDashboard() {
   // const [events, setEvents] = useState<VotingEvent[]>([]);
   const [events, setEvents] = useState<EventWithCandidatesResponse[]>([]);
-  const [expandedEventId, setExpandedEventId] = useState<string | null>(null);
+  const [expandedEventId, setExpandedEventId] = useState<number | null>(null);
   const token = localStorage.getItem('token');
 
-  useEffect(() => {
-      fetchEvents()
-    
-  }, []);
+  // useEffect(() => {
+  //   if(token){
+  //     fetchEvents(token)
+  //   }
+  // }, [token]);
 
-  const fetchEvents = async () => {
-    const fetchedEvents = await getEvents();
-    const eventsWithCandidates = await Promise.all(
-      fetchedEvents.map(async (event: EventResponse) => {
-        const candidatesResponse = await getCandidates(event.id);
-        return { ...event, candidates: candidatesResponse.data };
-      })
-    );
+  // const fetchEvents = async (token: string) => {
+  //   const fetchedEvents = await getEvents(token);
+  //   const eventsWithCandidates = await Promise.all(
+  //     fetchedEvents.data.map(async (event: EventResponse) => {
+  //       const candidatesResponse = await getCandidates(event.id);
+  //       return { ...event, candidates: candidatesResponse.data };
+  //     })
+  //   );
 
-    setEvents(eventsWithCandidates);
-  };
+  //   setEvents(eventsWithCandidates);
+  // };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     if (!token) return;
     if (!confirm('Are you sure you want to delete this event?')) return;
     // await apiDeleteEvent(id, token);
     // await fetchEvents(token);
   };
 
-  const toggleStats = (id: string) => {
+  const toggleStats = (id: number) => {
     setExpandedEventId(expandedEventId === id ? null : id);
   };
 
@@ -50,7 +51,7 @@ export default function AdminDashboard() {
       <Header />
       <main className="main-content">
         <div className="admin-header">
-          <h1 className="section-title">Admin Dashboard</h1>
+          <h1 className="section-title">Organizer Dashboard</h1>
           <Link to="/admin/create" className="primary-btn icon-btn">
             <Plus size={20} /> Create New Event
           </Link>
@@ -60,7 +61,7 @@ export default function AdminDashboard() {
           <table className="admin-table">
             <thead>
               <tr>
-                {/* <th>ID</th> */}
+                <th>ID</th>
                 <th>Title</th>
                 <th>Date</th>
                 <th>Total Votes</th>
@@ -75,7 +76,7 @@ export default function AdminDashboard() {
                 return (
                   <>
                     <tr key={event.id}>
-                      {/* <td>{event.id}</td> */}
+                      <td>#{event.id}</td>
                       <td>{event.name}</td>
                       <td>{new Date(event.startDate).toLocaleDateString()}</td>
                       <td>
@@ -114,8 +115,8 @@ export default function AdminDashboard() {
                                     <span className="vote-badge">{cand.totalVotes} Votes</span>
                                   </div>
                                   <div className="voter-list">
-                                    <small>Voters: {cand.totalVotes}</small>
-                                    {/* <ul>
+                                    <small>Voters:</small>
+                                    <ul>
                                       {cand.votes!.length > 0 ? (
                                         cand.votes!.map((voter, idx) => (
                                           <li key={idx}><User size={12}/> {voter.voterId}</li>
@@ -123,7 +124,7 @@ export default function AdminDashboard() {
                                       ) : (
                                         <li className="no-votes">No votes yet</li>
                                       )}
-                                    </ul> */}
+                                    </ul>
                                   </div>
                                 </div>
                               ))}

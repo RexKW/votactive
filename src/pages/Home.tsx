@@ -1,18 +1,30 @@
 import { useState, useEffect } from 'react';
 import { Search, MapPin, Calendar, Ticket } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { getEvents } from '../data/store';
+// import { getEvents } from '../data/store';
+import { getActiveEvents, getEvents } from '../apis/EventCRUD';
 import type { VotingEvent } from '../data/store';
+import type { EventResponse } from '../models/event-model';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import '../App.css';
 
+
+
 export default function Home() {
-  const [events, setEvents] = useState<VotingEvent[]>([]);
+  // const [events, setEvents] = useState<VotingEvent[]>([]);
+  const [events,setEvents] = useState<EventResponse[]>([])
 
   useEffect(() => {
-    setEvents(getEvents());
+    // setEvents(getEvents());
+    fetchEvents()
   }, []);
+
+  const fetchEvents = async () =>{
+    const fetchedEvents = await getActiveEvents()
+    console.log("Raw fetched data:", fetchedEvents);
+    setEvents(fetchedEvents.data)
+  }
 
   return (
     <div className="votactive-container">
@@ -67,19 +79,19 @@ export default function Home() {
                   <div 
                     className="card-image"
                     style={{
-                      backgroundImage: event.image ? `url(${event.image})` : 'none',
+                      backgroundImage: event.coverImage ? `url(${event.coverImage})` : 'none',
                       backgroundSize: 'cover',
                       backgroundPosition: 'center',
-                      backgroundColor: event.image ? 'transparent' : '#FFD633'
+                      backgroundColor: event.coverImage ? 'transparent' : '#FFD633'
                     }}
                   >
                     <span className="badge-icon">🔥</span>
                   </div>
                   <div className="card-details">
-                    <h3 className="card-title">{event.title}</h3>
+                    <h3 className="card-title">{event.name}</h3>
                     <div className="card-info-row">
                       <Calendar size={14} />
-                      <span>{event.date}</span>
+                      <span>{new Date(event.startDate).toLocaleDateString()}</span>
                     </div>
                     <div className="card-footer">
                        <span className="price-label">Mulai dari</span>

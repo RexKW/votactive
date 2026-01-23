@@ -2,15 +2,25 @@ import { useNavigate, Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import '../App.css';
+import { useState } from 'react';
+import { register as firebaseRegister } from '../apis/UserCRUD';
 
 export default function Register() {
   const navigate = useNavigate();
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    // For simulation, just redirect to login
-    alert("Registration successful! Please login.");
-    navigate('/login');
+    try{
+      await firebaseRegister(fullName, email, password);
+      alert('Registration successful! Please login.');
+      navigate('/login');
+    }catch(error){
+      console.error(error);
+      alert('Registration failed');
+    }
   };
 
   return (
@@ -22,15 +32,15 @@ export default function Register() {
           <form onSubmit={handleRegister} className="auth-form">
             <div className="form-group">
               <label>Full Name</label>
-              <input type="text" required placeholder="John Doe" />
+              <input value={fullName} onChange={(e)=>setFullName(e.target.value)} type="text" required placeholder="John Doe" />
             </div>
             <div className="form-group">
               <label>Email</label>
-              <input type="email" required placeholder="john@example.com" />
+              <input value={email} onChange={(e)=>setEmail(e.target.value)} type="email" required placeholder="john@example.com" />
             </div>
             <div className="form-group">
               <label>Password</label>
-              <input type="password" required placeholder="********" />
+              <input value={password} onChange={(e)=>setPassword(e.target.value)} type="password" required placeholder="********" />
             </div>
             <button type="submit" className="primary-btn">Register</button>
           </form>

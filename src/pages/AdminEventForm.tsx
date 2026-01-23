@@ -1,32 +1,52 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getEventById, saveEvent, type VotingEvent, type Candidate } from '../data/store';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { Trash, Plus, Upload, X } from 'lucide-react';
 import '../App.css';
+import type { EventFormData, EventResponse } from '../models/event-model';
+import { getEventById, createEvent, updateEvent } from '../apis/EventCRUD';
+import type { Candidate, VotingEvent } from '../data/store';
 
 export default function AdminEventForm() {
   const { id } = useParams();
   const navigate = useNavigate();
   
-  const [formData, setFormData] = useState<Partial<VotingEvent>>({
-    title: '',
-    date: '',
-    price: '',
-    location: '',
-    description: '',
-    image: '',
-    votes: 0,
-    candidates: []
-  });
+  // Start with null — we'll populate from Firestore when editing
+  const [formData, setFormData] = useState<EventFormData>({
+  name: '',
+  coverImage: '',
+  location: '',
+  description: '',
+  price: 0,
+  details: '',
+  startDate: '',
+  endDate: '',
+});
 
   useEffect(() => {
     if (id) {
-      const event = getEventById(Number(id));
-      if (event) setFormData(event);
+      getEvent(id)
     }
   }, [id]);
+
+  const toFormData = (event: EventResponse): EventFormData => ({
+    name: event.name,
+    coverImage: event.coverImage,
+    location: event.location,
+    description: event.description,
+    price: event.price,
+    details: event.details,
+    startDate: new Date(event.startDate).toISOString().split("T")[0],
+    endDate: new Date(event.endDate).toISOString().split("T")[0]
+  });
+
+  const getEvent = async(id: string) => {
+    const fetchedEvent = await getEventById(id)
+    console.log("Raw fetched data:", fetchedEvent);
+    const formData = await toFormData(fetchedEvent.data)
+    setFormData(formData)
+  }
 
   // --- NEW: Image Compression Helper ---
   // Resizes images to max 500px and compresses quality to 70%
@@ -90,51 +110,57 @@ export default function AdminEventForm() {
       voters: []
     };
     setFormData(prev => ({
-      ...prev,
-      candidates: [...(prev.candidates || []), newCandidate]
+      ...(prev ?? {}),
+      candidates: [...((prev?.candidates) || []), newCandidate]
     }));
   };
 
   const updateCandidate = (index: number, field: keyof Candidate, value: any) => {
-    const updatedCandidates = [...(formData.candidates || [])];
+    const current = formData ?? {} as any;
+    const updatedCandidates = [...(current.candidates || [])];
     updatedCandidates[index] = { ...updatedCandidates[index], [field]: value };
-    setFormData({ ...formData, candidates: updatedCandidates });
+    setFormData({ ...(current as any), candidates: updatedCandidates });
   };
 
   const removeCandidate = (index: number) => {
-    const updatedCandidates = [...(formData.candidates || [])];
+    const current = formData ?? {} as any;
+    const updatedCandidates = [...(current.candidates || [])];
     updatedCandidates.splice(index, 1);
-    setFormData({ ...formData, candidates: updatedCandidates });
+    setFormData({ ...(current as any), candidates: updatedCandidates });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
 
-    const newId = id ? Number(id) : Date.now();
-    
+    // Build payload to save to Firestore
+    const eventToSave = {
+      title: formData?.name ?? '',
+      date: formData?.startDate ?? '',
+      price: (formData as any)?.price ?? 0,
+      priceValue: (formData as any)?.priceValue ?? (formData as any)?.price ?? 0,
+      location: formData?.location ?? '',
+      description: (formData as any)?.description ?? (formData as any)?.details ?? '',
+      image: (formData as any)?.image ?? (formData as any)?.coverImage ?? '',
+      votes: (formData as any)?.votes ?? 0,
+      candidates: (formData as any)?.candidates ?? [],
+    };
     // Validation: Ensure candidates array exists and has at least 2 items
-    if(!formData.candidates || formData.candidates.length < 2) {
+    if(!((formData as any)?.candidates) || ((formData as any).candidates.length < 2)) {
       alert("Please add at least 2 candidates.");
       return;
     }
 
-    // Prepare object for saving
-    const eventToSave: VotingEvent = {
-        id: newId,
-        title: formData.title || '',
-        date: formData.date || '',
-        price: formData.price || '',
-        priceValue: formData.priceValue || 0,
-        location: formData.location || '',
-        description: formData.description || '',
-        image: formData.image || '',
-        votes: formData.votes || 0,
-        candidates: formData.candidates
-    };
 
     try {
-      saveEvent(eventToSave);
-      navigate('/admin');
+        if (id) {
+          // update existing event
+          await updateEvent(id, eventToSave);
+        } else {
+          // create new event
+          await createEvent(eventToSave);
+        }
+        navigate('/admin/dashboard');
+
     } catch (error) {
       console.error("Failed to save event:", error);
       alert("Failed to save event. Your image might still be too large, or LocalStorage is full.");
@@ -153,8 +179,8 @@ export default function AdminEventForm() {
             <div className="form-group">
               <label>Event Title</label>
               <input 
-                value={formData.title} 
-                onChange={e => setFormData({...formData, title: e.target.value})}
+                value={formData?.name ?? ''} 
+                onChange={e => setFormData({...(formData ?? {}), name: e.target.value})}
                 required 
               />
             </div>
@@ -162,10 +188,10 @@ export default function AdminEventForm() {
             <div className="form-group">
               <label>Event Image (Banner)</label>
               <div className="image-upload-box">
-                {formData.image ? (
+                {formData?.coverImage ? (
                   <div className="image-preview">
-                    <img src={formData.image} alt="Preview" />
-                    <button type="button" onClick={() => setFormData({...formData, image: ''})} className="remove-img-btn">
+                    <img src={formData.coverImage} alt="Preview" />
+                    <button type="button" onClick={() => setFormData({...formData, coverImage: ''})} className="remove-img-btn">
                       <X size={16} />
                     </button>
                   </div>
@@ -173,7 +199,7 @@ export default function AdminEventForm() {
                   <label className="upload-label">
                     <Upload size={24} />
                     <span>Click to upload</span>
-                    <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (base64) => setFormData({...formData, image: base64}))} hidden />
+                    <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (base64) => setFormData({... (formData ?? {}), coverImage: base64}))} hidden />
                   </label>
                 )}
               </div>
@@ -182,34 +208,38 @@ export default function AdminEventForm() {
             <div className="form-row">
               <div className="form-group">
                 <label>Date</label>
-                <input 
-                  value={formData.date} 
-                  onChange={e => setFormData({...formData, date: e.target.value})}
-                  required 
+                <input
+                  type="date"
+                  value={formData?.startDate}
+                  onChange={e => setFormData({ ...formData, startDate: e.target.value })}
+                  required
                 />
               </div>
               <div className="form-group">
                 <label>Price Display</label>
-                <input 
-                  value={formData.price} 
-                  onChange={e => setFormData({...formData, price: e.target.value})}
-                  required 
+                <input
+                  type="number"
+                  value={formData?.price  ?? 0}
+                  onChange={e =>
+                    setFormData({ ...formData, price: Number(e.target.value) })
+                  }
+                  required
                 />
               </div>
             </div>
             <div className="form-group">
               <label>Location</label>
               <input 
-                value={formData.location} 
-                onChange={e => setFormData({...formData, location: e.target.value})}
+                value={formData?.location ?? ''} 
+                onChange={e => setFormData({... (formData ?? {}), location: e.target.value})}
                 required 
               />
             </div>
             <div className="form-group">
               <label>Description</label>
               <textarea 
-                value={formData.description} 
-                onChange={e => setFormData({...formData, description: e.target.value})}
+                value={(formData as any)?.description ?? (formData as any)?.details ?? ''} 
+                onChange={e => setFormData({... (formData ?? {}), description: e.target.value})}
                 rows={4}
                 required 
               />
@@ -221,7 +251,7 @@ export default function AdminEventForm() {
             <h3 className="section-title" style={{ fontSize: '1.2rem' }}>Candidates Management</h3>
             
             <div className="candidates-list">
-              {formData.candidates?.map((candidate, index) => (
+              {(formData?.candidates || []).map((candidate, index) => (
                 <div key={candidate.id} className="candidate-form-item">
                   <div className="candidate-img-input">
                     {candidate.image ? (

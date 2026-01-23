@@ -1,18 +1,24 @@
 import { useState, useEffect } from 'react';
 import { Search, Calendar, Ticket } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { getEvents } from '../data/store';
 import type { VotingEvent } from '../data/store';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import '../App.css';
+import { getEvents } from '../apis/EventCRUD';
+import type { EventResponse } from '../models/event-model';
 
 export default function Kompetisi() {
-  const [events, setEvents] = useState<VotingEvent[]>([]);
+  const [events, setEvents] = useState<EventResponse[]>([]);
 
   useEffect(() => {
-    setEvents(getEvents());
+    fetchEvents()
   }, []);
+
+  const fetchEvents = async () =>{
+    const fetchedEvents = await getEvents()
+    setEvents(fetchedEvents);
+  }
 
   return (
     <div className="votactive-container kompetisi-page">
@@ -54,19 +60,19 @@ export default function Kompetisi() {
                     <div 
                       className="card-image"
                       style={{
-                        backgroundImage: event.image ? `url(${event.image})` : 'none',
+                        backgroundImage: event.coverImage ? `url(${event.coverImage})` : 'none',
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
-                        backgroundColor: event.image ? 'transparent' : '#FFD633'
+                        backgroundColor: event.coverImage ? 'transparent' : '#FFD633'
                       }}
                     >
                       {/* Placeholder or badge if needed */}
                     </div>
                     <div className="card-details">
-                      <h3 className="card-title">{event.title}</h3>
+                      <h3 className="card-title">{event.name}</h3>
                       <div className="card-info-row">
                         <Calendar size={14} />
-                        <span>{event.date}</span>
+                        <span>{new Date(event.startDate).toLocaleDateString()}</span>
                       </div>
                       <div className="card-footer">
                         <span className="price-label">Mulai dari</span>
