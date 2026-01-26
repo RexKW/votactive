@@ -1,4 +1,4 @@
-import type { CandidateResponse } from "./candidate-model"
+import type { CandidateResponse, CreateUpdateCandidateRequest } from "./candidate-model"
 
 
 

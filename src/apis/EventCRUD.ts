@@ -1,4 +1,4 @@
-import axios from "axios"
+// import axios from "axios"
 import type { EventResponse } from "../models/event-model";
 import { db } from "../FirebaseConf";
 import {

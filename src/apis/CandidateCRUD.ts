@@ -1,5 +1,5 @@
 import axios from "axios"
-import { db } from "../FirebaseConf";
+import { db, rtdb } from "../FirebaseConf";
 import {
   collection,
   getDocs,
@@ -11,6 +11,7 @@ import {
   query,
   where
 } from "firebase/firestore/lite";
+import { ref, get, child } from "firebase/database";
 import type { CandidateResponse } from "../models/candidate-model";
 
 const collectionRef = collection(db, "candidates");
@@ -28,36 +29,50 @@ const collectionRef = collection(db, "candidates");
 // }
 
 export async function getCandidates(stringEventId: string) {
-    try {
-        // 1. Create the reference object. 
-        // Note: Ensure "EVENTS" matches your actual collection name exactly.
-        const eventDocRef = doc(db, "events", stringEventId);
-        
-        // 2. Query the 'candidates' collection for documents where 'eventId' 
-        // matches that specific reference object.
-        const q = query(
-            collectionRef, 
-            where("eventId", "==", eventDocRef)
-        );
+  try {
+    // 1. Fetch Candidates from Firestore (Static Data)
+    const eventDocRef = doc(db, "events", stringEventId);
+    const q = query(collectionRef, where("eventId", "==", eventDocRef));
+    const snap = await getDocs(q);
 
-        const snap = await getDocs(q);
+    if (snap.empty) {
+      return { data: [] };
+    }
+
+    // 2. Fetch Votes from Realtime Database (Dynamic Data)
+    // We map over the Firestore results and create a request for each candidate's votes
+    const candidatesWithVotes = await Promise.all(
+      snap.docs.map(async (d) => {
+        const candidateData = d.data();
+        const candidateId = d.id;
+
+        // Reference to: candidates/{candidateId}/votes
+        // Based on your screenshot image_3f1b75.png
+        const voteRef = ref(rtdb, `candidates/${candidateId}/votes`);
         
-        if (snap.empty) {
-            console.log("Query returned 0 docs for event:", stringEventId);
-            return { data: [] };
+        let voteCount = 0;
+        try {
+          const voteSnap = await get(voteRef);
+          if (voteSnap.exists()) {
+            voteCount = voteSnap.val(); // Should return the number (e.g., 10)
+          }
+        } catch (err) {
+          console.error(`Error fetching votes for ${candidateId}`, err);
         }
 
-        const data = snap.docs.map(d => ({ 
-            ...d.data(),
-            id: d.id, 
-            votes: d.data().totalVotes
-        } as unknown as CandidateResponse));
+        return {
+          id: candidateId,
+          ...candidateData,
+          totalVotes: voteCount, // Overwrites any stale 'totalVotes' from Firestore
+        } as unknown as CandidateResponse;
+      })
+    );
 
-        return { data: data };
-    } catch (error) {
-        console.error("Critical Firestore Error:", error);
-        return { data: [] };
-    }
+    return { data: candidatesWithVotes };
+  } catch (error) {
+    console.error("Critical Error fetching candidates:", error);
+    return { data: [] };
+  }
 }
 
 export async function addCandidate(data: { name: string; [k: string]: any }) {

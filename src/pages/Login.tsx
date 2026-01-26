@@ -29,6 +29,7 @@ export default function Login() {
             if(uid){
               const role = await getUserRole(uid);
               // route based on role
+              console.log("logged in role:", role);
               if(role === 'admin') navigate('/admin/dashboard');
               else if(role === 'event_organizer') navigate('/organizer');
               else navigate('/login');

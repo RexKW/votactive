@@ -62,7 +62,7 @@ export default function Home() {
       <main className="main-content">
         <section className="content-section">
           <h2 className="section-title">Event Populer</h2>
-          <div className="event-grid">
+          <div className="grid grid-cols-4 gap-5">
             {events.map((event) => (
               <Link 
                 to={`/detail-kompetisi/${event.id}`} 
@@ -96,7 +96,7 @@ export default function Home() {
                     <div className="card-footer">
                        <span className="price-label">Mulai dari</span>
                        <div className="price-row">
-                         <span className="price-value">{event.price}</span>
+                         <span className="price-value">Rp.{event.price}</span>
                          <span className="location-icon"><Ticket size={16} /></span>
                        </div>
                     </div>

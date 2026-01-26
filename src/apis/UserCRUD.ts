@@ -1,4 +1,4 @@
-import app, { auth } from "../FirebaseConf"; // 1. Import 'app' instead of 'db'
+import { auth, db } from "../FirebaseConf"; // 1. Import 'app' instead of 'db'
 import { 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
@@ -6,7 +6,6 @@ import {
 } from "firebase/auth";
 
 import { 
-  getFirestore, // 2. Import 'getFirestore' to create db here
   doc, 
   setDoc, 
   getDoc, 
@@ -14,10 +13,9 @@ import {
   query, 
   where, 
   getDocs 
-} from "firebase/firestore"; 
+} from "firebase/firestore/lite"; 
 
 // 3. Initialize db LOCALLY to guarantee it matches the functions below
-const db = getFirestore(app);
 
 type FirebaseUserInfo = {
     uid: string;
